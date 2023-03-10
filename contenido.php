@@ -64,9 +64,9 @@ $template->themeInit();
                                 <div class="gen-socail-share mt-0">
                                     <h4 class="align-self-center"><?= $_SESSION['lang-txt']['general']['compartir'] ?></h4>
                                     <ul class="social-inner">
-                                        <li><a href="#" class="facebook"><i class="fab fa-facebook-f"></i></a></li>
-                                        <li><a href="#" class="facebook"><i class="fab fa-instagram"></i></a></li>
-                                        <li><a href="#" class="facebook"><i class="fab fa-twitter"></i></a></li>
+                                        <li><a href="https://www.facebook.com/" class="facebook"><i class="fab fa-facebook-f"></i></a></li>
+                                        <li><a href="https://www.instagram.com/" class="facebook"><i class="fab fa-instagram"></i></a></li>
+                                        <li><a href="https://www.twitter.com/" class="facebook"><i class="fab fa-twitter"></i></a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -97,11 +97,11 @@ $template->themeInit();
                                                                     <li class="share top">
                                                                         <i class="fa fa-share-alt"></i>
                                                                         <ul class="submenu">
-                                                                            <li><a href="#" class="facebook"><i class="fab fa-facebook-f"></i></a>
+                                                                            <li><a href="https://www.facebook.com/" class="facebook"><i class="fab fa-facebook-f"></i></a>
                                                                             </li>
-                                                                            <li><a href="#" class="facebook"><i class="fab fa-instagram"></i></a>
+                                                                            <li><a href="https://www.instagram.com/" class="facebook"><i class="fab fa-instagram"></i></a>
                                                                             </li>
-                                                                            <li><a href="#" class="facebook"><i class="fab fa-twitter"></i></a></li>
+                                                                            <li><a href="https://www.twitter.com/" class="facebook"><i class="fab fa-twitter"></i></a></li>
                                                                         </ul>
                                                                     </li>
                                                                 </ul>

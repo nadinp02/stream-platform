@@ -29,8 +29,8 @@ if ($logout) {
 }
 
 #Se busca pedidos y cuenta en la URL para ponerle el atributo active al boton
-$cuenta = $f->antihack_mysqli(strpos($_SERVER['REQUEST_URI'], "cuenta"));
-$favoritos = $f->antihack_mysqli(strpos($_SERVER['REQUEST_URI'], "favoritos"));
+// $cuenta = $f->antihack_mysqli(strpos($_SERVER['REQUEST_URI'], "cuenta"));
+// $favoritos = $f->antihack_mysqli(strpos($_SERVER['REQUEST_URI'], "favoritos"));
 
 
 #Información de cabecera
@@ -74,7 +74,7 @@ $template->themeInit();
 </div>
 <?php $template->themeEnd(); ?>
 
-<script>
+<!-- <script>
     getData(
         type = "",
         div = "grid-favorites",
@@ -86,4 +86,4 @@ $template->themeInit();
         limit = 12,
         order = "id ASC"
     );
-</script>
+</script> -->

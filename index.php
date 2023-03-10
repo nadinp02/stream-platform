@@ -37,8 +37,8 @@ $novRecientes = $contenidos->list($filter_recientes, $_SESSION["lang"], false);
 
 #Información de cabecera
 $template->set("title", TITULO);
-$template->set("description", "");
-$template->set("keywords", "");
+$template->set("description", "Disfruta de StreamLab, películas y series en streaming en tu smart TV, consola, PC, Mac, móvil, tablet y más dispositivos.");
+$template->set("keywords", "StreamLab, Streaming");
 $template->themeInit();
 ?>
 
@@ -149,11 +149,11 @@ $template->themeInit();
                                           <li class="share top">
                                              <i class="fa fa-share-alt"></i>
                                              <ul class="submenu">
-                                                <li><a href="#" class="facebook"><i class="fab fa-facebook-f"></i></a>
+                                                <li><a href="https://www.facebook.com/" target="_blank" class="facebook"><i class="fab fa-facebook-f"></i></a>
                                                 </li>
-                                                <li><a href="#" class="facebook"><i class="fab fa-instagram"></i></a>
+                                                <li><a href="https://www.instagram.com/" target="_blank" class="facebook"><i class="fab fa-instagram"></i></a>
                                                 </li>
-                                                <li><a href="#" class="facebook"><i class="fab fa-twitter"></i></a></li>
+                                                <li><a href="https://www.twitter.com/" target="_blank" class="facebook"><i class="fab fa-twitter"></i></a></li>
                                              </ul>
                                           </li>
                                        </ul>

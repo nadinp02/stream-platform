@@ -78,8 +78,8 @@ $habilitado = (isset($usuario["invitado"]) && $usuario["invitado"] == 0) ?  true
                            </ul>
                         </div>
                      </div>
+                     
                      <?php if (isset($_SESSION['usuarios']['cod']) && $_SESSION['usuarios']['invitado'] == 0) { ?>
-
                      <?php } else { ?>
                         <div class="gen-btn-container">
                            <a href="<?= URL ?>/register" class="gen-button">

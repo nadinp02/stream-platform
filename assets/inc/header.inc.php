@@ -62,7 +62,7 @@ if (!empty($marketing['data']['google_analytics'])) { ?>
 
 
 
-<!-- <script src="https://www.google.com/recaptcha/api.js?render=<?= $captchaData['data']['captcha_key'] ?>"></script>
+<script src="https://www.google.com/recaptcha/api.js?render=<?= $captchaData['data']['captcha_key'] ?>"></script>
 <script>
     window.captchaKey = '<?= $captchaData['data']['captcha_key'] ?>';
-</script> -->
+</script>

@@ -73,7 +73,7 @@ $template->themeInit();
                         <?=$_SESSION['lang-txt']['novedades']['todos']?>
                     </button>
                     <?php
-                    // if isset contenido data categoria
+                    // if isset contenidosData categoria
                     foreach ($categoriaList as $item) { ?>
                         <button class="btn btn-category" data-toggle="portfilter" data-target="<?= $item['data']['cod'] ?>">
                             <?= $item['data']['titulo'] ?>
@@ -101,11 +101,11 @@ $template->themeInit();
                                                 <li class="share top">
                                                     <i class="fa fa-share-alt"></i>
                                                     <ul class="submenu">
-                                                        <li><a href="#" class="facebook"><i class="fab fa-facebook-f"></i></a>
+                                                        <li><a href="https://www.facebook.com/" class="facebook"><i class="fab fa-facebook-f"></i></a>
                                                         </li>
-                                                        <li><a href="#" class="facebook"><i class="fab fa-instagram"></i></a>
+                                                        <li><a href="https://www.instagram.com/" class="facebook"><i class="fab fa-instagram"></i></a>
                                                         </li>
-                                                        <li><a href="#" class="facebook"><i class="fab fa-twitter"></i></a></li>
+                                                        <li><a href="https://www.twitter.com/" class="facebook"><i class="fab fa-twitter"></i></a></li>
                                                     </ul>
                                                 </li>
                                             </ul>
