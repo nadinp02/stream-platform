@@ -1,0 +1,473 @@
+<?php
+$pedidos = new Clases\Pedidos();
+$funciones = new Clases\PublicFunction();
+$usuarios = new Clases\Usuarios();
+$carrito = new Clases\Carrito();
+$estadosPedidos  = new Clases\EstadosPedidos();
+
+
+$estadoFiltro = isset($_GET["estadoFiltro"]) ? $funciones->antihack_mysqli($_GET["estadoFiltro"]) : '';
+$from = isset($_GET["from"]) ? $funciones->antihack_mysqli($_GET["from"]) : '';
+$to = isset($_GET["to"]) ? $funciones->antihack_mysqli($_GET["to"]) : '';
+
+$estadoPedido = $estadosPedidos->listByEstado();
+if ($estadoFiltro != '') {
+    foreach ($estadoPedido[$estadoFiltro]['data'] as $key__ => $filterEstado) {
+        $filter['status'][$key__] = "estado = '" . $filterEstado['id'] . "'";
+    }
+}
+if (!empty($from)) {
+    $to_ = !empty($to) ? "'" . $to . "'" : "NOW()";
+    $filter['date'] = ["fecha BETWEEN '" . $from . "' AND " . $to_];
+}
+#PAGINADOR 
+$link = !empty($estadoFiltro) || is_numeric($estadoFiltro) ? URL_ADMIN . "/index.php?op=pedidos&accion=ver&estadoFiltro=" . $estadoFiltro : URL_ADMIN . "/index.php?op=pedidos&accion=ver";
+$pagina = isset($_GET['pagina']) ? $funciones->antihack_mysqli($_GET['pagina']) : 1;
+$limite = 30;
+$start = $limite * ($pagina - 1);
+$paginador = $pedidos->paginador($link, isset($filter) ? $filter : '', $limite, $pagina, 1, false);
+$pedidosData = !empty($filter) ? $pedidos->list($filter, '', $start .  "," . $limite) : $pedidos->list('', '', $start .  "," . $limite);
+
+if ($estadoFiltro != '') $filter = '';
+$totalByStatus = $pedidos->getTotalByStatus(isset($filter) ? $filter : ''); // Cantidad total y monto de pedidos por area
+
+$promedio = 0;
+if ($totalByStatus["statusTotal"][2]["data"]["cantidad"] != 0) {
+    $promedio = $totalByStatus["statusTotal"][2]["data"]["total"] / $totalByStatus["statusTotal"][2]["data"]["cantidad"];
+}
+if (isset($_SESSION["usuarios-ecommerce"])) {
+    unset($_SESSION["cod_pedido"]);
+    unset($_SESSION["usuarios-ecommerce"]);
+    $carrito->destroy();
+}
+?>
+<div class="mt-20">
+    <section id="widgets-Statistics">
+        <div class="row">
+            <div class="col-12 mt-1">
+                <h4 class="mt-20 col-xs-12 pull-left">Pedidos</h4><?php if ($_SESSION["admin"]["crud"]["crear"]) { ?><a class="btn btn-success pull-right text-uppercase mt-15 " href="<?= URL_ADMIN ?>/index.php?op=usuarios&accion=ver&pedido=1">AGREGAR PEDIDOS </a><?php } ?>
+                <form method="get" class="col-xs-12 pull-right mt-15" id="orderForm" name="orderForm" action="<?= CANONICAL ?>"><input type="hidden" name="op" value="pedidos" /><input type="hidden" name="accion" value="ver" />
+                    <div class="row">
+                        <div class="col-md-4 col-xs-12 col-sm-12">
+                            <input type="date" name="from" value="<?= !empty($from) ? $from : '' ?>" required>
+                        </div>
+                        <div class="col-md-1 col-xs-12 col-sm-12">
+                            <h6 class="mt-10">hasta</h6>
+                        </div>
+                        <div class="col-md-4 col-xs-12 col-sm-12">
+                            <input type="date" name="to" value="<?= !empty($to) ? $to : '' ?>">
+                        </div>
+                        <button class="btn btn-primary col-md-2 col-xs-12 col-sm-12 ml-10" type="submit">BUSCAR</button>
+                    </div>
+                </form>
+                <div class="clearfix"></div>
+                <hr class="mb-0" />
+            </div>
+        </div>
+        <div class="row">
+            <?php
+            $tooltipData = $pedidos->tooltipData($totalByStatus['status']);
+            foreach ($totalByStatus['statusTotal'] as $key_ => $statusData) {
+                $tooltipData_ = '';
+                $link = URL_ADMIN . "/index.php?op=pedidos&accion=ver&estadoFiltro=" . $key_;
+                switch ($key_) {
+                    case 1:
+                        $statusStyle = ["Pendiente", "bxs-hourglass", "warning"];
+                        if (isset($tooltipData[$key_])) {
+                            $tooltipData_ = $tooltipData[$key_];
+                        }
+                        break;
+                    case 2:
+                        $statusStyle = ["Aprobado", "bx-money", "success"];
+                        if (isset($tooltipData[$key_])) {
+                            $tooltipData_ = $tooltipData[$key_];
+                        }
+                        break;
+                    case 3:
+                        $statusStyle = ["Pago no concretado", "bx-dislike", "danger"];
+                        if (isset($tooltipData[$key_])) {
+                            $tooltipData_ = $tooltipData[$key_];
+                        }
+                        break;
+                }
+            ?>
+                <div class="col-md-4 col-sm-4">
+                    <div class="card text-center">
+                        <div class="card-content">
+                            <div class="card-body btn  tooltip-light" style="" type="button" data-toggle="tooltip" data-placement="bottom" data-html="true" title="<?= $pedidos->getTooltip($tooltipData_) ?>" onclick="document.location.href='<?= (CANONICAL == $link) ?  URL_ADMIN . '/index.php?op=pedidos&accion=ver' : $link ?>'">
+                                <div class="badge-circle badge-circle-lg  mx-auto my-1  <?= $estadoFiltro != '' ? ($estadoFiltro == $key_ ? 'badge-circle-light-' . $statusStyle[2] : 'badge-circle-light-secondary') : 'badge-circle-light-' . $statusStyle[2] ?>"><i class="fs-26 bx <?= $statusStyle[1] ?> fs-30 "></i></div>
+                                <p class="text-muted mb-0 line-ellipsis"><?= $statusStyle[0] ?>(<?= isset($statusData['data']['cantidad']) ? $statusData['data']['cantidad'] : 0 ?>)</p>
+                                <h3 class="mb-0 fs-18 bold">$<?= isset($statusData['data']['total']) ? number_format($statusData['data']['total'], 2, ",", ".") : 0 ?></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php
+            } ?>
+        </div>
+        <!-- <div class="alert alert-secondary text-center fs-13 pt-10 pb-10 text-uppercase mt-10 mb-0  d-block"> Promedio de carritos aprobados: $<?= number_format($promedio, "2", ",", ".") ?></div> -->
+    </section>
+    <hr><?php foreach ($pedidosData as $key => $value) {
+            $fecha = date("d/m/Y H:i:s", strtotime($value['data']['fecha']));
+            $code = $value['data']['cod'];
+            $flag = $value['data']['visto'];
+        ?>
+        <div class="accordion collapse-icon accordion-icon-rotate" id="accordionWrapa2<?= $value['data']['id'] ?>">
+            <div class="card collapse-header text-uppercase">
+                <div onclick="check('<?= URL ?>','<?= $code ?>','<?= $flag ?>')" id="heading5<?= $value['data']['id'] ?>" class="card-header" data-toggle="collapse" data-target="#accordion5<?= $value['data']['id'] ?>" aria-expanded="false" aria-controls="accordion5<?= $value['data']['id'] ?>" role="tablist">
+                    <span class="collapse-title">
+                        <div class="row fs-12">
+                            <div class="mx-0 py-0 col ">
+                                <i id='viewed<?= $code ?>' style=" margin-top: -7px" class="icon-pedido fa fa-eye  <?= ($value['data']['visto'] == 1) ? '' : 'hidden' ?>" aria-hidden="true"></i>
+                                <i id='notOpen<?= $code ?>' style=" margin-top: -7px" class="icon-pedido fa fa-eye-slash  <?= ($value['data']['visto'] == 1) ? 'hidden' : '' ?>" aria-hidden="true"></i>
+                                <span class="ml-40 "><b>Pedido: </b><?= $value['data']["cod"] ?></span>
+                                <?php if (isset($value['data']["pago"])) { ?>
+                                    <span class="hidden-md-down"> <b style="margin-left:4px"> Pago: </b><?= $value['data']["pago_titulo"] ?></span>
+                                <?php } ?>
+                            </div>
+                            <div class="mx-0 py-0 col hidden-md-down">
+                                <span> <b> Fecha: </b><?= $fecha ?></span>
+                                <?= (!empty($value['user']['data'])) ? '<span> <b style="margin-left:4px"> Nombre: </b>' . $value['user']['data']['nombre'] . ' ' . $value['user']['data']['apellido'] . '</span>' : '' ?>
+                                <?= (isset($value['detalle_pago']['data']['factura']) && $value['detalle_pago']['data']['factura'] == true) ? '<span>- <b>FACTURA A</b> </span>' : '' ?>
+                            </div>
+                            <div class="mx-0 py-0 col">
+                                <?= $estadosPedidos->getStateBadge($value['data']['estado']); ?>
+                            </div>
+                        </div>
+                    </span>
+                </div>
+                <div id="accordion5<?= $value['data']['id'] ?>" role="tabpanel" data-parent="#accordionWrapa2<?= $value['data']['id'] ?>" aria-labelledby="heading5<?= $value['data']['id'] ?>" class="collapse">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <div id="print-<?= $value['data']['id'] ?>" style="padding:10px;background:#fff" class="p-10">
+                                <img src="<?= LOGO ?>" width="180" class="mt-15 mb-10" />
+                                <hr />
+                                <h2 class="fs-16 bold">DATOS DE COMPRA/PEDIDO</h2>
+                                <hr />
+                                <div id="pedido-<?= $value['data']["cod"] ?>">
+                                    <div class="row">
+                                        <div class="col-md-12 col-sm-12 table-responsive">
+                                            <table class="table table-striped table-sm table-hover">
+                                                <thead class="thead-dark">
+                                                    <tr>
+                                                        <th>COD </th>
+                                                        <th>Producto </th>
+                                                        <th>Cantidad </th>
+                                                        <th class="hidden-xs hidden-sm">Precio </th>
+                                                        <th>Precio Final </th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    foreach ($value['detail'] as $key2 => $value2) {
+                                                        $precio =  isset($value2["precio"]) ? $value2["precio"] : '0';
+                                                        $producto_cod = ($value2["producto_cod"] != 'Descuento') ? $value2["producto_cod"] : $value2["cod_producto"];
+                                                        $value2['descuento'] = json_decode($value2['descuento'], true);
+                                                        if (isset($value2["descuento"]["products"])) $discount = $value2;
+                                                        $desc = (isset($value2["descuento"]["products"])) ? '*' : '';
+                                                    ?>
+                                                        <?php if ($value2['cod'] == $value['data']["cod"]) { ?>
+                                                            <tr id="<?= $value2['id'] ?>">
+                                                                <td width="10%">
+                                                                    <?= $producto_cod ?>
+                                                                </td>
+                                                                <td>
+                                                                    <?= $value2["producto"] ?> <?= $desc  ?>
+                                                                </td>
+                                                                <td>
+                                                                    <?php if ($value2["precio"] > 0) {
+                                                                        echo $value2["cantidad"];
+                                                                    } ?>
+                                                                </td>
+                                                                <td>
+                                                                    <?php if ($value2["precio"] > 0) {
+                                                                        echo '$' . $value2["precio"];
+                                                                        if (isset($descuento["cod"])) {
+                                                                            echo '<b class="descuento-precio">  ' . $descuento["precio-antiguo"] . '</b>';
+                                                                        }
+                                                                    } ?>
+                                                                </td>
+                                                                <td>
+                                                                    <?php if ($value2["precio"] > 0 || $value2["precio"] < 0) {
+                                                                        echo '$' . $value2["precio"] * $value2["cantidad"];
+                                                                    } elseif ($value2["precio"] == 0) {
+                                                                        echo 'Sin recargo';
+                                                                    } ?>
+                                                                </td>
+                                                                <td> <?php if ($_SESSION["admin"]["crud"]["eliminar"]) { ?><button class="btn btn-danger deleteConfirm" onclick="deletePedidoItem('<?= $value2['id'] ?>','<?= URL_ADMIN ?>','<?= ($value2['precio'] * $value2['cantidad']) ?>','<?= $value['data']['cod'] ?>')"><i class="fa fa-trash pull-left" aria-hidden="true"></i></button><?php } ?></td>
+                                                            </tr>
+                                                        <?php } ?>
+                                                    <?php } ?>
+                                                    <?php if (!empty($value['data']['entrega']) && $value['data']['entrega'] < $value['data']['total']) { ?>
+                                                        <tr>
+                                                            <td><b class="fs-18">SEÑADO </b></td>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td>
+                                                                <price><b>$<?= $value["data"]["entrega"] ?></b></price>
+                                                            </td>
+                                                            <td></td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                    <tr class="pt-10 pb-10 mb-20">
+                                                        <td><b class="fs-18">TOTAL </b></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text">$</span>
+                                                                </div>
+                                                                <input id="total<?= $value["data"]["cod"] ?>" type="number" step="any" class="form-control" placeholder="0.00" <?= ($_SESSION["admin"]["crud"]["editar"]) ? "onchange='editPedido('" . $value["data"]["cod"] . "','" . URL_ADMIN . "','total')" : '' ?> value="<?= $value['data']['total'] ?>">
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <?php if (isset($discount)) { ?>
+                                                        <thead class="thead-dark ">
+                                                            <th></th>
+                                                            <th class="text-left" width="50%"> * <?= strtoupper($discount['producto']) ?></th>
+                                                            <th>Descuento</th>
+                                                            <th>Desc. u.</th>
+                                                            <th>Desc. Total</th>
+                                                        </thead>
+                                                        <?php
+                                                        foreach ($discount['descuento']['products'] as $desc) { ?>
+                                                            <tr>
+                                                                <td></td>
+                                                                <td>
+                                                                    <?= $desc['titulo'] ?>
+                                                                </td>
+                                                                <td>
+                                                                    <?= $desc['monto'] ?>
+                                                                </td>
+                                                                <?php if (isset($desc['descuentoUnidad'])) { ?>
+                                                                    <td>
+                                                                        $<?= $desc['descuentoUnidad'] ?>
+                                                                    </td>
+                                                                    <td>
+                                                                        $<?= $desc['descuentoTotal'] ?>
+                                                                    </td>
+                                                                <?php } ?>
+                                                            </tr>
+                                                    <?php  }
+                                                    }
+                                                    ?>
+                                                </tbody>
+                                            </table>
+                                            <hr>
+                                            <h2 class="fs-16 bold">Observacion:</h2>
+                                            <input type="text" id="observacion<?= $value["data"]["cod"] ?>" <?= ($_SESSION["admin"]["crud"]["editar"]) ? "onchange='editPedido('" . $value["data"]["cod"] . "','" . URL_ADMIN . "','observacion')'" : '' ?> value="<?= isset($value['data']['observacion']) ? $value['data']['observacion'] : '' ?>">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <hr />
+                                        <h2 class="fs-16 bold">DATOS DEL USUARIO</h2>
+                                        <hr />
+                                        <b class="text-dark">MÉTODO DE PAGO: </b><?= isset($value['data']["pago"]) ? $value['data']["pago_titulo"]  : 'No especificada' ?>
+                                        <?php
+
+                                        if (!empty($value['data']['leyenda_pago'])) {
+                                            echo "<b class='ml-20 text-dark'>DESCRIPCIÓN DEL PAGO: </b>" . $value['data']['leyenda_pago'] . "<br/>";
+                                        }
+                                        if (!empty($value['data']['link_pago'])) {
+                                            echo "<b class='ml-20 text-dark'>URL PARA PAGAR: </b><a href='" . $value['data']['link_pago'] . "' target='_blank'>CLICK AQUÍ</a>";
+                                        } ?>
+
+                                        <div class="clearfix"></div>
+                                        <hr>
+                                        <div class="row mb-15">
+                                            <?php if (!empty($value['user']['data'])) { ?>
+                                                <div class="col-md-4 col-xs-12 col-sm-12 ">
+                                                    <b class='text-dark'>INFORMACIÓN DE USUARIO</b>
+                                                    <hr />
+                                                    <p>
+                                                        <b class='text-dark'>Nombre: </b><?= $value['user']['data']['nombre'] . ' ' . $value['user']['data']['apellido'] ?><br />
+                                                        <b class='text-dark'>Dirección: </b><?= $value['user']['data']['calle'] . ' ' . $value['user']['data']['numero'] . ' ' . $value['user']['data']['piso'] .  ' - ' . $value['user']['data']['localidad'] . ' - ' . $value['user']['data']['provincia'] ?><br />
+                                                        <b class='text-dark'>Teléfono: </b><?= $value['user']['data']['telefono'] ?><br />
+                                                        <?= isset($value['user']['data']['celular']) ? "<b class='text-dark'>Celular: </b>" . $value['user']['data']['celular'] . "<br />" : '' ?>
+                                                        <b class='text-dark'>Email: </b><?= $value['user']['data']['email'] ?><br />
+                                                    </p>
+                                                </div>
+                                            <?php } ?>
+                                            <?php if (!empty($value['detalle_envio'])) { ?>
+                                                <div class="col-md-4  col-xs-12 col-sm-12"><b class='text-dark'>INFORMACIÓN DE ENVIO</b>
+                                                    <hr />
+                                                    <?= $pedidos->getInfoPedido($value['detalle_envio']); ?>
+                                                    <p class='mb-0 fs-13'><b class='text-dark'><?= $_SESSION["lang-txt"]["checkout"]["similar"] ?>: </b><?= $value['detalle_envio']['data']['similar'] ? "Si" : "No" ?></p>
+                                                </div>
+                                            <?php } ?>
+                                            <?php if (!empty($value['detalle_pago'])) { ?>
+                                                <div class="col-md-4  col-xs-12 col-sm-12"><b class='text-dark'>INFORMACIÓN DE FACTURACIÓN</b>
+                                                    <hr />
+                                                    <?= $pedidos->getInfoPedido($value['detalle_pago']); ?>
+                                                    <?php
+                                                    if ($value['detalle_pago']['data']['factura']) {
+                                                        echo "<p class='mb-0 fs-13'><b class='text-dark'>" . $_SESSION["lang-txt"]["checkout"]["detail"]["factura_cuit"] . " </b></p>";
+                                                    }
+                                                    ?>
+                                                </div>
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php if (isset($url)) { ?>
+                                    <hr />
+                                    <?php if (!empty($value['user']['data']['celular'])) { ?>
+                                        <a href="https://wa.me/<?= $value['user']['data']['celular'] ?>?text=<?= $url ?>" target="_blank" class="btn" style="background-color: lawngreen;"><i class="fa fa-phone"></i>Compartir por whatsapp </a>
+                                    <?php } else { ?>
+                                        <button class="btn" style="background-color: lawngreen;" title="El usuario no posee numero de celular" disabled><i class="fa fa-phone"></i>Compartir por whatsapp </button>
+                                    <?php } ?>
+                                <?php } ?>
+                                <div class="hiddenPrint">
+                                    <?php if ($_SESSION["admin"]["crud"]["editar"]) { ?>
+                                        <hr />
+                                        <b class="mt-10 mr-10 ">CAMBIAR ESTADO: </b>
+                                        <div class=" ">
+                                            <?php
+                                            foreach ($estadoPedido as $key => $estado) {
+                                                switch ($key) {
+                                                    case 1:
+                                                        $btnName = "Pendiente";
+                                                        $btnColor = "btn-warning";
+                                                        break;
+                                                    case 2:
+                                                        $btnName = "Aprobado";
+                                                        $btnColor = "btn-success";
+                                                        break;
+                                                    case 3:
+                                                        $btnName = "Rechazado";
+                                                        $btnColor = "btn-danger";
+                                                        break;
+                                                }
+                                            ?>
+                                                <div class="btn-group mt-1 dropup mr-1 mb-1"><button type="button" class="btn <?= $btnColor ?> dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="<?= $value['data']['cod'] . "state"; ?>"><?= $btnName ?></button>
+                                                    <div class="dropdown-menu" aria-labelledby="<?= $value['data']['cod'] . "state"; ?>">
+                                                        <?php
+                                                        foreach ($estado['data'] as $estadoItem) { ?>
+                                                            <a id="<?= $estadoItem['id'] . "state"; ?>" onclick="editAndSendStatus('<?= URL ?>','<?= $value['data']['cod'] ?>','<?= $estadoItem['id'] ?>','<?= $estadoItem['enviar'] ?>')" class="dropdown-item"><?= $estadoItem['titulo'] ?></a>
+                                                        <?php } ?>
+                                                    </div>
+                                                </div>
+                                            <?php } ?>
+                                        </div>
+                                    <?php } ?>
+                                    <b class="mt-10 mr-10 ">MÁS OPCIONES: </b>
+                                    <div class="  ">
+                                        <button class="btn btn-primary pull-left mt-1 ml-10" onclick="linkMp('<?= $value['data']['cod'] ?>')">
+                                            <i class="fa fa-usd"></i> LINK PAGO </button>
+                                        <button class="btn btn-success pull-left mt-1 ml-10" onclick="printContent('print-<?= $value['data']['id'] ?>')">
+                                            <i class="fa fa-print"></i> IMPRIMIR </button>
+                                        <button class="btn btn-info pull-left mt-1 ml-10" onclick="exportPedido('<?= URL_ADMIN ?>', '<?= $value['data']['cod'] ?>')">
+                                            <i class="fa fa-file-excel"></i> GUARDAR EN EXCEL</button>
+                                        <a class="btn btn-info pull-left ml-10 mt-1" target="_blank" href="<?= URL ?>/api/pedidos/saveToPdf.php?cod=<?= $value['data']['cod'] ?>">
+                                            <i class="fa fa-file-pdf"></i> GUARDAR EN PDF</a>
+                                        <?php if ($_SESSION["admin"]["crud"]["eliminar"]) { ?>
+                                            <a href="<?= CANONICAL ?>&borrar=<?= $value['data']['cod'] ?>" class="btn btn-danger deleteConfirm deleteConfirm pull-left ml-10 mt-1">ELIMINAR PEDIDO</a>
+                                        <?php } ?>
+                                        <button class="btn btn-warning pull-left ml-10 mt-1" onclick="copyLink('<?= $value['data']['cod'] ?>')">Copiar Link Carrito Pre Armado</button>
+                                        <div class="col-md-12">
+                                            <input class="pull-right" style="opacity:0" type="text" value="<?= URL ?>/pedido/<?= $value['data']["cod"] ?>" id="linkCopy-<?= $value['data']["cod"] ?>">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="modalS" class="modal fade mt-120" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div id="textS" class="text-center"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php } ?>
+    <div class="col-12">
+        <?= $paginador ?>
+    </div>
+</div>
+<?php
+if (!empty($_GET["borrar"]) && $_SESSION["admin"]["crud"]["eliminar"]) {
+    $pedidos->set("cod", isset($_GET["borrar"]) ? $funciones->antihack_mysqli($_GET["borrar"]) : '');
+    $pedidos->delete();
+    $funciones->headerMove(URL_ADMIN . "/index.php?op=pedidos");
+}
+?>
+<script src="<?= URL_ADMIN ?>/js/script.js"></script>
+<script>
+    function copyLink(id) {
+        var copyText = document.getElementById("linkCopy-" + id);
+        copyText.select();
+        copyText.setSelectionRange(0, 99999)
+        document.execCommand("copy");
+        successMessage("Link de carrito pre armado: " + copyText.value);
+    }
+
+    function exportPedido(url, pedido) {
+        $.ajax({
+            url: url + "/api/pedidos/export.php",
+            type: "POST",
+            data: {
+                cod: pedido
+            },
+            success: (data) => {
+                data = JSON.parse(data);
+                window.open(data.file, '_blank');
+            }
+        });
+
+    }
+
+    function copyToClipboard(text) {
+        if (window.clipboardData && window.clipboardData.setData) {
+            // IE specific code path to prevent textarea being shown while dialog is visible.
+            return clipboardData.setData("Text", text);
+
+        } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+            var textarea = document.createElement("textarea");
+            textarea.textContent = text;
+            textarea.style.position = "fixed"; // Prevent scrolling to bottom of page in MS Edge.
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                return document.execCommand("copy"); // Security exception may be thrown by some browsers.
+            } catch (ex) {
+                console.warn("Copy to clipboard failed.", ex);
+                return false;
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+    }
+
+    function linkMp(pedido) {
+        $.ajax({
+            url: "<?= URL ?>" + "/api/payments/mp-total.php",
+            type: "POST",
+            data: {
+                cod: pedido
+            },
+            beforeSend: () => {
+                infoMessage("Generando link de pago...");
+            },
+            success: (data) => {
+                data = JSON.parse(data);
+                if (data['status']) {
+                    var result = copyToClipboard(data['url']);
+                    successMessage("Link de pago copiado: " + data['url']);
+                } else {
+                    errorMessage(data['message']);
+                }
+            }
+        });
+
+    }
+</script>
