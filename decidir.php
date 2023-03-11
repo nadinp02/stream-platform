@@ -1,5 +1,5 @@
 <?php
-require_once "Config/Autoload.php";
+require_once "config/Autoload.php";
 Config\Autoload::run();
 $f = new Clases\PublicFunction();
 $pedido =  new Clases\Pedidos();

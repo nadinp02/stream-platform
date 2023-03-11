@@ -1,5 +1,5 @@
 <?php
-require_once "Config/Autoload.php";
+require_once "config/Autoload.php";
 Config\Autoload::run();
 $template = new Clases\TemplateSite();
 $f = new Clases\PublicFunction();
@@ -85,6 +85,7 @@ $template->themeInit();
                     <?php foreach ($contenidoData as $item) {
                         $link = URL . "/c/" . $item['data']['area'] . "/" . $f->normalizar_link($item['data']['titulo']) . "/" . $item['data']['cod'];
                         $date = date_create($item['data']['fecha']);
+                        
                     ?>
                         <div class="col-xl-3 col-lg-4 col-md-6" data-tag="<?= $item['data']['categoria'] ?>">
                             <div class="gen-carousel-movies-style-1 movie-grid style-1">
@@ -117,7 +118,7 @@ $template->themeInit();
                                             </div>
                                         </div>
                                         <div class="gen-movie-action">
-                                            <a href="<?= $link ?>" class="gen-button">
+                                            <a class="gen-button" href="<?= $link ?>">
                                                 <i class="fa fa-play"></i>
                                             </a>
                                         </div>
@@ -130,7 +131,7 @@ $template->themeInit();
                                             <ul>
                                                 <li><?= date_format($date, 'd-m-Y '); ?></li>
                                                 <li>
-                                                    <a href="adventure.html"><span><?= $item["data"]['categoria_titulo'] ?></span></a>
+                                                    <a href=""><span class="fs-12"><?= $item["data"]['categoria_titulo'] ?></span></a>
                                                 </li>
                                             </ul>
                                         </div>

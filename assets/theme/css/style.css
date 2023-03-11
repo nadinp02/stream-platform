@@ -4100,7 +4100,8 @@ Carousel Movies
     -o-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;
     object-fit: cover!important;
-    height: 200px!important;
+    height: 225px!important;
+    width:100%;
 }
 
 .gen-carousel-movies-style-1:hover .gen-movie-contain .gen-movie-img img {
@@ -4527,8 +4528,10 @@ Carousel Movies
     -o-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;
     object-fit: cover!important;
-    height: 200px!important;
+    height: 225px!important;
+    width: 100%;
 }
+
 
 .gen-carousel-movies-style-2 .gen-movie-contain:hover .gen-movie-img img {
     -webkit-transform: scale(1.2);
@@ -4732,7 +4735,8 @@ Carousel Movies
     -o-transition: all 0.5s ease-in-out;
     -webkit-transition: all 0.5s ease-in-out;
     object-fit: cover!important;
-    height: 200px!important;
+    height: 225px!important;
+    width: 100%;
 }
 
 .gen-carousel-movies-style-3 .gen-movie-contain:hover .gen-movie-img img {

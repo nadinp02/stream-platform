@@ -1,5 +1,5 @@
 <?php
-require_once "Config/Autoload.php";
+require_once "config/Autoload.php";
 
 Config\Autoload::run();
 
@@ -85,7 +85,8 @@ $template->themeInit();
                     $('#modalS').modal('toggle');
                 },
                 success: function(data) {
-                    data = JSON.parse(data);
+                    console.log(data);
+                    data = JSON.parse(data); 
                     if (data['status'] == true) {
                         $('#textS').html('');
                         $('#textS').append("<i class='fa fa-check-circle fs-80' style='color:green'></i><br>");

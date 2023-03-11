@@ -1,5 +1,5 @@
 <?php
-require_once "Config/Autoload.php";
+require_once "config/Autoload.php";
 Config\Autoload::run();
 
 $template = new Clases\TemplateSite();
@@ -11,7 +11,8 @@ $data_banner = [
    "filter" => ["contenidos.area = 'novedades' && contenidos.destacado = 1"],
    "images" => 'all',
    "options" => true,
-   "orden" => 5
+   "orden" => true,
+   "limit" => 5,
 
 ];
 $bannerInicio = $contenidos->list($data_banner, $_SESSION["lang"], false);
@@ -58,7 +59,7 @@ $template->themeInit();
                               <div class="row flex-row-reverse align-items-center h-100">
                                  <div class="col-xl-6">
                                     <div class="gen-front-image">
-                                       <img src="<?= $item['images'][0]['url'] ?>" alt="<?= $item['data']['titulo'] ?>">
+                                       <img src="<?= $item['images'][0]['url'] ?>" alt="<?= $item['data']['titulo'] ?>" style="height:600px">
                                        <a href="https://www.youtube.com/watch?v=<?= $item['data']['link'] ?>" class="playBut popup-youtube popup-vimeo popup-gmaps">
                                           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="213.7px" height="213.7px" viewBox="0 0 213.7 213.7" enable-background="new 0 0 213.7 213.7" xml:space="preserve">
                                              <polygon class="triangle" id="XMLID_17_" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="
@@ -134,6 +135,7 @@ $template->themeInit();
                <div class="owl-carousel owl-loaded owl-drag" data-dots="false" data-nav="true" data-desk_num="4" data-lap_num="3" data-tab_num="2" data-mob_num="1" data-mob_sm="1" data-autoplay="false" data-loop="false" data-margin="30">
                   <?php foreach ($novedades as $item) {
                      $link = URL . "/c/" . $item["data"]["area"] . "/" . $f->normalizar_link($item["data"]["titulo"]) . "/" . $item["data"]["cod"];
+                     $date = date_create($item['data']['fecha']);
                   ?>
                      <div class="item">
                         <div class="movie type-movie status-publish has-post-thumbnail hentry movie_genre-action movie_genre-adventure movie_genre-drama">
@@ -182,7 +184,7 @@ $template->themeInit();
                                     <div class="gen-movie-meta-holder">
 
                                        <ul>
-                                          <li>2hr 00mins</li>
+                                          <li><?=date_format($date, 'd-m-y')?></li>
                                           <li>
                                              <a href="action.html"><span><?= $item['data']['categoria_titulo'] ?></span></a>
                                           </li>
@@ -227,6 +229,7 @@ $template->themeInit();
                <div class="owl-carousel owl-loaded owl-drag" data-dots="false" data-nav="true" data-desk_num="4" data-lap_num="3" data-tab_num="2" data-mob_num="1" data-mob_sm="1" data-autoplay="false" data-loop="false" data-margin="30">
                   <?php foreach ($novRecientes as $item) {
                      $link = URL . "/c/" . $item["data"]["area"] . "/" . $f->normalizar_link($item["data"]["titulo"]) . "/" . $item["data"]["cod"];
+                     $date = date_create($item['data']['fecha']);
                   ?>
 
                      <div class="item">
@@ -275,7 +278,7 @@ $template->themeInit();
                                     </div>
                                     <div class="gen-movie-meta-holder">
                                        <ul>
-                                          <li>1hr 24mins</li>
+                                          <li><?=date_format($date, 'd-m-y')?></li>
                                           <li>
                                              <a href="action.html"><span><?= $item['data']['categoria_titulo'] ?></span></a>
                                           </li>
